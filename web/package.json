@@ -1,0 +1,31 @@
+{
+  "name": "vorthos-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/serve.mjs",
+    "fixture": "node scripts/make-fixture.mjs",
+    "check": "tsc --noEmit",
+    "test:browser": "node scripts/check-browser.mjs",
+    "bench": "node scripts/benchmark.mjs",
+    "test:loading": "node scripts/check-loading.mjs",
+    "format": "prettier --write app components lib scripts public/engine.mjs public/gallery-worker.mjs next.config.ts postcss.config.mjs"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "playwright": "^1.56.0",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0"
+  }
+}

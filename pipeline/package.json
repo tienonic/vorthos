@@ -1,0 +1,1 @@
+{"name":"vorthos-pipeline","version":"0.1.0","private":true,"type":"module","scripts":{"sample":"node run.mjs sample","full":"node run.mjs full","export":"node export.mjs","validate":"node validate.mjs","examples":"node examples.mjs"},"dependencies":{"@huggingface/transformers":"3.8.1","sharp":"0.34.5","stream-json":"1.9.1"}}

@@ -1,0 +1,12 @@
+BRIEF.md
+RESULT.md
+worker.log
+node_modules/
+.next/
+out/
+pipeline/cache/
+pipeline/.venv/
+*.log
+web/screenshots/
+tsconfig.tsbuildinfo
+next-env.d.ts
