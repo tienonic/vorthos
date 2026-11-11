@@ -2,9 +2,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useData } from "./data-provider";
+import { ArtImage } from "./grid";
 import { number } from "@/lib/types";
 export function Artists() {
-  const { meta } = useData(),
+  const { meta, art } = useData(),
     [search, setSearch] = useState(""),
     [sort, setSort] = useState("count");
   const artists = useMemo(
@@ -19,11 +20,18 @@ export function Artists() {
         ) || [],
     [meta, search, sort],
   );
+  const previews = useMemo(() => {
+    const samples = new Map<number, number>();
+    if (art)
+      for (let i = 0; i < art.n; i++) {
+        if (!samples.has(art.artist[i])) samples.set(art.artist[i], i);
+      }
+    return samples;
+  }, [art]);
   return (
     <div className="page-width artists-page">
       <div className="page-heading">
         <h1>Artists</h1>
-        <p>The people behind the worlds.</p>
       </div>
       <div className="artist-controls">
         <label className="artist-search">
@@ -58,20 +66,33 @@ export function Artists() {
         </span>
       </div>
       <div className="artist-directory">
-        {artists.map(([name, slug, count], i) => (
-          <Link href={"/?artist=" + slug} key={slug} className="artist-entry">
-            <span className="artist-number">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <div>
-              <h2>{name}</h2>
-              <p>
-                {number(count)} artwork{count === 1 ? "" : "s"}
-              </p>
-            </div>
-            <span className="artist-arrow">↗</span>
-          </Link>
-        ))}
+        {artists.map(([name, slug, count]) => {
+          const index = meta?.artists.findIndex((a) => a[1] === slug) ?? -1;
+          const preview = previews.get(index);
+          return (
+            <Link
+              href={"/?artist=" + slug}
+              key={slug}
+              className="artist-entry"
+              aria-label={`${name}, ${number(count)} artworks`}
+            >
+              <div className="artist-preview">
+                {art && preview !== undefined ? (
+                  <ArtImage art={art} index={preview} />
+                ) : (
+                  <div className="art-image skeleton-image" />
+                )}
+              </div>
+              <div className="artist-caption">
+                <div className="artist-name">
+                  <h2>{name}</h2>
+                  <span>{number(count)}</span>
+                </div>
+                <p>{slug}</p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
       {meta && artists.length === 0 && (
         <div className="empty">

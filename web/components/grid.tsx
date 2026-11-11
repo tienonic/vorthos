@@ -26,12 +26,7 @@ export function ArtImage({
         .then(() => setLoaded(true));
   }, [art.id[index], art.face[index]]);
   return (
-    <div
-      className="art-image"
-      style={{
-        backgroundColor: `hsl(${art.hsl[index * 3]} ${art.hsl[index * 3 + 1]}% ${art.hsl[index * 3 + 2]}%)`,
-      }}
-    >
+    <div className="art-image" data-loaded={loaded}>
       <img
         ref={image}
         src={imageURL(art, index)}
@@ -99,6 +94,7 @@ export function VirtualGrid({
   const pendingFocus = useRef<number | null>(null);
   const [view, setView] = useState({
     width: 1200,
+    viewport: 1440,
     scroll: 0,
     height: 900,
     top: 0,
@@ -113,6 +109,7 @@ export function VirtualGrid({
         const rect = node.getBoundingClientRect();
         setView({
           width: rect.width,
+          viewport: window.innerWidth,
           scroll: window.scrollY,
           height: window.innerHeight,
           top: rect.top + window.scrollY,
@@ -142,10 +139,18 @@ export function VirtualGrid({
     }
   }, [view, ids]);
   const columns =
-      view.width < 560 ? 2 : view.width < 800 ? 3 : view.width < 1100 ? 4 : 5,
-    gap = view.width < 560 ? 12 : 20;
+      view.viewport < 640
+        ? 2
+        : view.viewport < 768
+          ? 3
+          : view.viewport < 1024
+            ? 4
+            : view.viewport < 1280
+              ? 5
+              : 6,
+    gap = view.viewport < 640 ? 10 : 12;
   const tileWidth = (view.width - gap * (columns - 1)) / columns,
-    rowHeight = tileWidth * 0.75 + 91 + gap,
+    rowHeight = (tileWidth - 2) * 0.75 + 69.5 + gap,
     rows = Math.ceil(ids.length / columns);
   const start = Math.max(
       0,

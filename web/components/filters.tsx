@@ -1,9 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Filters } from "@/lib/types";
 import { useData } from "./data-provider";
 import { updateURL } from "@/lib/url";
 const filterKeys = [
+  "search",
   "subject",
   "mood",
   "colour",
@@ -133,13 +135,55 @@ export function FiltersBar({ filters }: { filters: Filters }) {
   const { meta } = useData(),
     [open, setOpen] = useState(""),
     [artistSearch, setArtistSearch] = useState(""),
-    root = useRef<HTMLDivElement>(null);
+    root = useRef<HTMLDivElement>(null),
+    menu = useRef<HTMLDivElement>(null),
+    [menuPosition, setMenuPosition] = useState({ left: 20, top: 100 });
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const trigger = root.current?.querySelector('[aria-expanded="true"]');
+      const node = menu.current;
+      if (!trigger || !node) return;
+      const box = trigger.getBoundingClientRect();
+      const height = node.getBoundingClientRect().height;
+      const bottom = window.innerHeight - (window.innerWidth < 640 ? 73 : 12);
+      setMenuPosition({
+        left: Math.max(
+          20,
+          Math.min(box.left, window.innerWidth - node.offsetWidth - 20),
+        ),
+        top: Math.max(65, Math.min(box.bottom + 8, bottom - height)),
+      });
+    };
+    place();
+    menu.current
+      ?.querySelector<HTMLElement>("input,button,[tabindex]")
+      ?.focus({ preventScroll: true });
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, { passive: true });
+    const observer = new ResizeObserver(place);
+    if (menu.current) observer.observe(menu.current);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place);
+      observer.disconnect();
+    };
+  }, [open]);
   useEffect(() => {
     const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen("");
+      if (
+        !root.current?.contains(e.target as Node) &&
+        !menu.current?.contains(e.target as Node)
+      )
+        setOpen("");
     };
     const escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen("");
+      if (e.key === "Escape") {
+        root.current
+          ?.querySelector<HTMLElement>('[aria-expanded="true"]')
+          ?.focus({ preventScroll: true });
+        setOpen("");
+      }
     };
     window.addEventListener("pointerdown", outside);
     window.addEventListener("keydown", escape);
@@ -151,13 +195,24 @@ export function FiltersBar({ filters }: { filters: Filters }) {
   if (!meta)
     return (
       <div className="filters loading-filters" aria-label="Loading filters">
-        {["Subject", "Mood", "Colour", "Card type", "Year", "Artist"].map(
-          (x) => (
-            <span className="filter-pill" key={x}>
-              {x} <span>⌄</span>
-            </span>
-          ),
-        )}
+        <label className="collection-search">
+          <SearchIcon />
+          <input
+            aria-label="Search artworks"
+            placeholder="Search artworks…"
+            disabled
+          />
+        </label>
+        <span className="filter-divider" aria-hidden="true" />
+        <div className="filter-controls">
+          {["Subject", "Mood", "Colour", "Card type", "Year", "Artist"].map(
+            (x) => (
+              <span className="filter-pill" key={x}>
+                {x} <span>⌄</span>
+              </span>
+            ),
+          )}
+        </div>
       </div>
     );
   const options: Record<string, [string, string][]> = {
@@ -179,161 +234,216 @@ export function FiltersBar({ filters }: { filters: Filters }) {
   };
   const select = (key: string, value?: string) => {
     updateURL({ [key]: value });
+    root.current
+      ?.querySelector<HTMLElement>(`[aria-controls="filter-${key}"]`)
+      ?.focus({ preventScroll: true });
     setOpen("");
   };
   return (
     <div className="filters" ref={root}>
-      {Object.entries(labels).map(([key, label]) => {
-        const value = filters[key as keyof Filters],
-          current = options[key]?.find((x) => x[0] === value)?.[1];
-        return (
-          <div className="filter-wrap" key={key}>
-            <button
-              className={`filter-pill ${value ? "active" : ""}`}
-              aria-expanded={open === key}
-              aria-controls={"filter-" + key}
-              onClick={() => setOpen(open === key ? "" : key)}
-            >
-              {key === "colour" && value && (
-                <span
-                  className="pill-swatch"
-                  style={{
-                    backgroundColor: `hsl(${value.split(",")[0]} ${value.split(",")[1]}% ${value.split(",")[2]}%)`,
-                  }}
-                />
-              )}
-              {current || label}
-              <span className="chevron" aria-hidden="true">
-                ⌄
-              </span>
-            </button>
-            {open === key && (
-              <div
-                className={`filter-menu ${key === "colour" ? "colour-menu" : ""}`}
-                id={"filter-" + key}
+      <label className="collection-search">
+        <SearchIcon />
+        <input
+          aria-label="Search artworks"
+          placeholder="Search artworks…"
+          value={filters.search || ""}
+          onChange={(event) =>
+            updateURL({ search: event.target.value || undefined })
+          }
+        />
+        {filters.search && (
+          <button
+            aria-label="Clear artwork search"
+            onClick={() => updateURL({ search: undefined })}
+          >
+            ×
+          </button>
+        )}
+      </label>
+      <span className="filter-divider" aria-hidden="true" />
+      <div className="filter-controls">
+        {Object.entries(labels).map(([key, label]) => {
+          const value = filters[key as keyof Filters],
+            current = options[key]?.find((x) => x[0] === value)?.[1];
+          return (
+            <div className="filter-wrap" key={key}>
+              <button
+                className={`filter-pill ${value ? "active" : ""}`}
+                aria-expanded={open === key}
+                aria-controls={"filter-" + key}
+                onClick={() => setOpen(open === key ? "" : key)}
               >
-                {key === "colour" ? (
-                  <>
-                    <ColourPicker
-                      value={value?.split(",").map(Number)}
-                      onChange={(v, replace) =>
-                        updateURL({ colour: v.join(",") }, replace)
-                      }
-                    />
-                    {value && (
-                      <button
-                        className="menu-option"
-                        onClick={() => select(key)}
-                      >
-                        Clear colour
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {key === "artist" && (
-                      <input
-                        autoFocus
-                        className="menu-search"
-                        aria-label="Search artists"
-                        placeholder="Search artists…"
-                        value={artistSearch}
-                        onChange={(e) => setArtistSearch(e.target.value)}
-                      />
-                    )}
-                    <div className="menu-options">
-                      <button
-                        className={
-                          !value ? "menu-option chosen" : "menu-option"
-                        }
-                        onClick={() => select(key)}
-                      >
-                        All{" "}
-                        {key === "type"
-                          ? "card types"
-                          : key === "year"
-                            ? "years"
-                            : label.toLowerCase() + "s"}
-                      </button>
-                      {options[key]
-                        .filter(
-                          (x) =>
-                            key !== "artist" ||
-                            x[1]
-                              .toLowerCase()
-                              .includes(artistSearch.toLowerCase()),
-                        )
-                        .slice(0, key === "artist" ? 70 : 100)
-                        .map(([v, l]) => (
+                {key === "colour" && value && (
+                  <span
+                    className="pill-swatch"
+                    style={{
+                      backgroundColor: `hsl(${value.split(",")[0]} ${value.split(",")[1]}% ${value.split(",")[2]}%)`,
+                    }}
+                  />
+                )}
+                {current || label}
+                <span className="chevron" aria-hidden="true">
+                  ⌄
+                </span>
+              </button>
+              {open === key &&
+                createPortal(
+                  <div
+                    ref={menu}
+                    style={menuPosition}
+                    className={`filter-menu ${key === "colour" ? "colour-menu" : ""}`}
+                    id={"filter-" + key}
+                  >
+                    {key === "colour" ? (
+                      <>
+                        <ColourPicker
+                          value={value?.split(",").map(Number)}
+                          onChange={(v, replace) =>
+                            updateURL({ colour: v.join(",") }, replace)
+                          }
+                        />
+                        {value && (
+                          <button
+                            className="menu-option"
+                            onClick={() => select(key)}
+                          >
+                            Clear colour
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {key === "artist" && (
+                          <input
+                            autoFocus
+                            className="menu-search"
+                            aria-label="Search artists"
+                            placeholder="Search artists…"
+                            value={artistSearch}
+                            onChange={(e) => setArtistSearch(e.target.value)}
+                          />
+                        )}
+                        <div className="menu-options">
                           <button
                             className={
-                              value === v ? "menu-option chosen" : "menu-option"
+                              !value ? "menu-option chosen" : "menu-option"
                             }
-                            key={v}
-                            onClick={() => select(key, v)}
+                            onClick={() => select(key)}
                           >
-                            {l}
-                            {value === v && <span>✓</span>}
+                            All{" "}
+                            {key === "type"
+                              ? "card types"
+                              : key === "year"
+                                ? "years"
+                                : label.toLowerCase() + "s"}
                           </button>
-                        ))}
-                      {key === "year" && (
-                        <label className="exact-year">
-                          Exact year
-                          <input
-                            type="number"
-                            placeholder="e.g. 2003"
-                            min="1993"
-                            max="2100"
-                            value={value && !value.endsWith("s") ? value : ""}
-                            onChange={(e) =>
-                              updateURL({ year: e.target.value || undefined })
-                            }
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </>
+                          {options[key]
+                            .filter(
+                              (x) =>
+                                key !== "artist" ||
+                                x[1]
+                                  .toLowerCase()
+                                  .includes(artistSearch.toLowerCase()),
+                            )
+                            .slice(0, key === "artist" ? 70 : 100)
+                            .map(([v, l]) => (
+                              <button
+                                className={
+                                  value === v
+                                    ? "menu-option chosen"
+                                    : "menu-option"
+                                }
+                                key={v}
+                                onClick={() => select(key, v)}
+                              >
+                                {l}
+                                {value === v && <span>✓</span>}
+                              </button>
+                            ))}
+                          {key === "year" && (
+                            <label className="exact-year">
+                              Exact year
+                              <input
+                                type="number"
+                                placeholder="e.g. 2003"
+                                min="1993"
+                                max="2100"
+                                value={
+                                  value && !value.endsWith("s") ? value : ""
+                                }
+                                onChange={(e) =>
+                                  updateURL({
+                                    year: e.target.value || undefined,
+                                  })
+                                }
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>,
+                  document.body,
                 )}
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <div className="filter-spacer" />
-      {Object.keys(filters).some(
-        (k) => filterKeys.includes(k) && k !== "sort" && k !== "seed",
-      ) && (
-        <button
-          className="clear-filters"
-          onClick={() =>
-            updateURL(Object.fromEntries(filterKeys.map((k) => [k, undefined])))
-          }
-        >
-          Clear
-        </button>
-      )}
-      <label className="sort-label">
-        <span className="sr-only">Sort artworks</span>
-        <select
-          aria-label="Sort artworks"
-          value={filters.sort || "newest"}
-          onChange={(e) =>
-            updateURL({
-              sort: e.target.value === "newest" ? undefined : e.target.value,
-              seed:
-                e.target.value === "random"
-                  ? String(Math.floor(Math.random() * 1e8))
-                  : undefined,
-            })
-          }
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="colour">Colour</option>
-          <option value="random">Random</option>
-        </select>
-        <span aria-hidden="true">↓</span>
-      </label>
+            </div>
+          );
+        })}
+        <div className="filter-spacer" />
+        {Object.keys(filters).some(
+          (k) => filterKeys.includes(k) && k !== "sort" && k !== "seed",
+        ) && (
+          <button
+            className="clear-filters"
+            onClick={() =>
+              updateURL(
+                Object.fromEntries(filterKeys.map((k) => [k, undefined])),
+              )
+            }
+          >
+            Clear
+          </button>
+        )}
+        <label className="sort-label">
+          <span className="sr-only">Sort artworks</span>
+          <select
+            aria-label="Sort artworks"
+            value={filters.sort || "newest"}
+            onChange={(e) =>
+              updateURL({
+                sort: e.target.value === "newest" ? undefined : e.target.value,
+                seed:
+                  e.target.value === "random"
+                    ? String(Math.floor(Math.random() * 1e8))
+                    : undefined,
+              })
+            }
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="colour">Colour</option>
+            <option value="random">Random</option>
+          </select>
+          <span aria-hidden="true">↓</span>
+        </label>
+      </div>
     </div>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <circle cx="10.5" cy="10.5" r="7" />
+      <path d="m16 16 5 5" />
+    </svg>
   );
 }

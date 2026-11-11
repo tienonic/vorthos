@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { CACHE, OUTPUT, readJSON, writeJSON, openDB, TYPES, typeIndex } from './common.mjs';
+import { inScope, CACHE, OUTPUT, readJSON, writeJSON, openDB, TYPES, typeIndex } from './common.mjs';
 import { FEATURE_VERSION, MODEL, MOODS, SUBJECTS } from './prompts.mjs';
 
 export function calibrate(raw, n) {
@@ -69,7 +69,7 @@ export function loadFeatures(rows) {
   db.close();return features;
 }
 export function exportData(mode='full') {
-  const rows=readJSON(`${CACHE}/${mode==='sample'?'sample':'catalog'}.json`);
+  const rows=inScope(readJSON(`${CACHE}/${mode==='sample'?'sample':'catalog'}.json`));
   const text=readJSON(`${CACHE}/text-prototypes.json`);
   const expected=crypto.createHash('sha256').update(JSON.stringify({MODEL,MOODS,SUBJECTS,text_dtype:'fp32'})).digest('hex');
   if(text.hash!==expected)throw Error('Prompts changed: run node model-prepare.mjs before exporting. Cached images/embeddings remain valid.');

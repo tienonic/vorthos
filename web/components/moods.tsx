@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useData, useArtQuery } from "./data-provider";
-import { ArtRow, Count, VirtualGrid } from "./grid";
-import { Query, number } from "@/lib/types";
+import { Count, VirtualGrid } from "./grid";
+import { number } from "@/lib/types";
 import { useURL, updateURL } from "@/lib/url";
-export function Discover() {
-  const { meta, full, loadScores, scores } = useData(),
+export function Moods() {
+  const { meta, full, loadScores } = useData(),
     params = useURL();
   useEffect(() => {
     loadScores();
@@ -38,37 +38,9 @@ export function Discover() {
       ? requestedRegion
       : 1;
   const result = useArtQuery({ vennMoods: moodIds, region });
-  const [hue, setHue] = useState(190),
-    [dragHue, setDragHue] = useState(190);
-  const spectrum = useArtQuery({
-    metric: "hue",
-    colour: [hue, 65, 48],
-    limit: 12,
-  });
-  useEffect(() => {
-    const timer = setTimeout(() => setHue(dragHue), 50);
-    return () => clearTimeout(timer);
-  }, [dragHue]);
   return (
-    <div className="page-width discover-page">
-      <div className="page-heading">
-        <h1>Discover</h1>
-        <p>Explore the collection by mood and colour.</p>
-      </div>
+    <div className="page-width moods-page">
       <section className="venn-section">
-        <div className="section-heading">
-          <div>
-            <h2>Mood Venn</h2>
-            <p>Pick two or three moods. Explore where they meet.</p>
-          </div>
-          <span className="small-note">
-            {scores
-              ? "Ordered by mood strength"
-              : full
-                ? "Loading mood strengths…"
-                : "Loading collection…"}
-          </span>
-        </div>
         <div className="venn-layout">
           <div className="venn-controls">
             <div className="mood-picks">
@@ -92,8 +64,8 @@ export function Discover() {
                     className="mood-dot"
                     style={{
                       backgroundColor:
-                        ["#647b58", "#8b72a8", "#bd884f"][moodIds.indexOf(i)] ||
-                        "#d1cec5",
+                        ["#6e819a", "#9683a6", "#b59a79"][moodIds.indexOf(i)] ||
+                        "#d4d4da",
                     }}
                   />
                   {m.label}
@@ -174,79 +146,7 @@ export function Discover() {
           </Link>
         )}
       </section>
-      <section className="spectrum-section">
-        <div className="section-heading">
-          <div>
-            <h2>Colour spectrum</h2>
-            <p>Scrub to find artworks near a hue.</p>
-          </div>
-          <span
-            className="hue-readout"
-            style={{ color: `hsl(${dragHue} 55% 32%)` }}
-          >
-            {dragHue}°
-          </span>
-        </div>
-        <input
-          className="spectrum-slider"
-          type="range"
-          min="0"
-          max="359"
-          value={dragHue}
-          onChange={(e) => setDragHue(Number(e.target.value))}
-          aria-label="Scrub the colour spectrum"
-        />
-        <div className="spectrum-labels">
-          <span>Warm</span>
-          <span>Green</span>
-          <span>Blue</span>
-          <span>Violet</span>
-          <span>Warm</span>
-        </div>
-        <ArtRow ids={spectrum.ids} />
-      </section>
-      <CuratedRow title="Darkest" query={{ metric: "dark", limit: 10 }} />
-      <CuratedRow
-        title="Most luminous"
-        query={{ metric: "light", limit: 10 }}
-      />
-      <CuratedRow
-        title="Most saturated"
-        query={{ metric: "saturated", limit: 10 }}
-      />
-      {meta?.moods.map((m, i) => (
-        <CuratedRow
-          key={m.key}
-          title={m.label}
-          query={{ mood: i, limit: 10 }}
-          href={"/?mood=" + m.key}
-        />
-      ))}
     </div>
-  );
-}
-function CuratedRow({
-  title,
-  query,
-  href,
-}: {
-  title: string;
-  query: Query;
-  href?: string;
-}) {
-  const result = useArtQuery(query);
-  return (
-    <section className="curated-section">
-      <div className="section-heading">
-        <h2>{title}</h2>
-        {href && (
-          <Link className="text-link" href={href}>
-            View all ↗
-          </Link>
-        )}
-      </div>
-      <ArtRow ids={result.ids} />
-    </section>
   );
 }
 function Venn({
@@ -319,9 +219,9 @@ function Venn({
           cx={cx}
           cy={cy}
           r={r}
-          fill={["#647b58", "#8b72a8", "#bd884f"][i]}
+          fill={["#6e819a", "#9683a6", "#b59a79"][i]}
           fillOpacity=".12"
-          stroke={["#647b58", "#8b72a8", "#bd884f"][i]}
+          stroke={["#6e819a", "#9683a6", "#b59a79"][i]}
           strokeWidth="1.2"
         />
       ))}
@@ -333,7 +233,7 @@ function Venn({
           <rect
             width="450"
             height="380"
-            fill={region === mask ? "#314c3f" : "transparent"}
+            fill={region === mask ? "#0b0b0d" : "transparent"}
             fillOpacity=".17"
             mask={`url(#exclude-${mask})`}
           />

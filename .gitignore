@@ -10,3 +10,4 @@ pipeline/.venv/
 web/screenshots/
 tsconfig.tsbuildinfo
 next-env.d.ts
+docs/reference-home.png

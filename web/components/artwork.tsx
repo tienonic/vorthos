@@ -43,6 +43,7 @@ export function ArtworkOverlay() {
     if (location.pathname === BASE + "/" || location.pathname === BASE) {
       e.preventDefault();
       updateURL({
+        search: undefined,
         subject: undefined,
         mood: undefined,
         type: undefined,
@@ -70,21 +71,29 @@ export function ArtworkOverlay() {
       }}
       aria-labelledby="artwork-title"
     >
-      <div className="art-dialog-inner">
-        <button
-          className="close-button"
-          onClick={close}
-          aria-label="Close artwork"
-          autoFocus
-        >
-          ×
-        </button>
+      <div className="art-breadcrumb">
+        <div className="page-width">
+          <button onClick={close}>Collection</button>
+          <span>›</span>
+          <span>{art && index >= 0 ? art.name[index] : "Artwork"}</span>
+          <button
+            className="close-button"
+            onClick={close}
+            aria-label="Close artwork"
+            autoFocus
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div className="art-dialog-inner page-width">
         {art && meta && a && s && index >= 0 ? (
           <>
             <div className="large-art">
               <ArtImage art={art} index={index} priority />
             </div>
             <div className="art-details">
+              <p className="detail-kind">{meta.types[art.type[index]]}</p>
               <div className="detail-heading">
                 <div>
                   <h2 id="artwork-title">{art.name[index]}</h2>
@@ -96,18 +105,18 @@ export function ArtworkOverlay() {
                     {a[0]} ↗
                   </Link>
                 </div>
-                <a
-                  className="text-link"
-                  href={`https://scryfall.com/card/${art.id[index]}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View on Scryfall ↗
-                </a>
               </div>
               <p className="detail-set">
                 {s[1]} · {s[2]}
               </p>
+              <a
+                className="detail-source"
+                href={`https://scryfall.com/card/${art.id[index]}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on Scryfall ↗
+              </a>
               <div className="detail-bottom">
                 <div>
                   <p className="detail-label">Palette</p>

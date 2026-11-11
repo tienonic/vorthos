@@ -37,3 +37,6 @@ export function openDB(readOnly=false) {
 }
 export const TYPES=['Creature','Land','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Battle','Token','Other'];
 export function typeIndex(line) { return TYPES.indexOf(['Token','Planeswalker','Battle','Creature','Land','Instant','Sorcery','Enchantment','Artifact'].find(t=>new RegExp(`\\b${t}\\b`).test(line)) || 'Other'); }
+
+export const MAX_YEAR=2016;
+export const inScope=rows=>rows.filter(x=>Number(x.released.slice(0,4))<=MAX_YEAR);

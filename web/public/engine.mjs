@@ -23,8 +23,10 @@ export function query(data, q = {}, scores, moodCount = 0) {
     found = [],
     keys = new Float64Array(data.n),
     counts = new Uint32Array(1 << (q.vennMoods?.length || 0));
+  const search = q.search?.trim().toLocaleLowerCase();
   const hasColour = q.colour?.length === 3 && q.colour.every(Number.isFinite);
   for (let i = 0; i < data.n; i++) {
+    if (search && !data.name[i].toLocaleLowerCase().includes(search)) continue;
     if (
       (q.subject >= 0 && data.subject[i] !== q.subject) ||
       (q.type >= 0 && data.type[i] !== q.type) ||

@@ -4,20 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useData } from "./data-provider";
 import { ArtworkOverlay } from "./artwork";
-export function Mark({ size = 26 }: { size?: number }) {
+export function Mark({ size = 28 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M3 5h7l6 17L22 5h7L18.5 29h-5L3 5Z" fill="currentColor" />
-      <path
-        d="m16 0 2.2 4.8L23 7l-4.8 2.2L16 14l-2.2-4.8L9 7l4.8-2.2L16 0Z"
-        fill="var(--paper)"
-      />
+    <svg width={size} height={size} viewBox="0 0 28 28" aria-hidden="true">
+      <rect width="28" height="28" rx="8" fill="#0b0b0d" />
+      <path d="m7.5 7 6.5 15L20.5 7H17l-3 8-3-8Z" fill="white" />
     </svg>
   );
 }
@@ -26,7 +17,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { error } = useData();
   const items = [
     ["/", "Collection", "▦"],
-    ["/discover/", "Discover", "◉"],
+    ["/moods/", "Moods", "◉"],
     ["/artists/", "Artists", "♧"],
   ];
   return (
@@ -38,7 +29,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="top-inner">
           <Link href="/" className="wordmark">
             <Mark />
-            vorthos<span className="wordmark-dot">.</span>
+            <span className="wordmark-name">vorthos</span>
           </Link>
           <nav aria-label="Main navigation">
             {items.map(([href, label]) => (
@@ -58,7 +49,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
-          <span className="header-note">A gallery of Magic art</span>
         </div>
       </header>
       <main id="main">
@@ -138,7 +128,7 @@ function NavIcon({ href }: { href: string }) {
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </>
-      ) : href === "/discover/" ? (
+      ) : href === "/moods/" ? (
         <>
           <circle cx="12" cy="12" r="9" />
           <path d="m16 8-2.5 5.5L8 16l2.5-5.5L16 8Z" />

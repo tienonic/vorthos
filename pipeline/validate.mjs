@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { gzipSync } from 'node:zlib';
 import crypto from 'node:crypto';
-import { CACHE, OUTPUT, readJSON, writeJSON, imageURL, fetchRetry, headers, TYPES, typeIndex } from './common.mjs';
+import { inScope, CACHE, OUTPUT, readJSON, writeJSON, imageURL, fetchRetry, headers, TYPES, typeIndex } from './common.mjs';
 import { MOODS, SUBJECTS } from './prompts.mjs';
 export async function validate(mode='full', online=true) {
   const meta=readJSON(`${OUTPUT}/meta.json`),art=readJSON(`${OUTPUT}/art.json`),head=readJSON(`${OUTPUT}/head.json`),bytes=fs.readFileSync(`${OUTPUT}/mood-scores.bin`);
-  const catalog=readJSON(`${CACHE}/${mode==='sample'?'sample':'catalog'}.json`);
+  const catalog=inScope(readJSON(`${CACHE}/${mode==='sample'?'sample':'catalog'}.json`));
   const fields=['id','face','name','artist','set','type','subject','moods','hsl','pal'];
   function shape(table,n) {
     assert.deepEqual(Object.keys(table).sort(),['n',...fields].sort());assert.equal(table.n,n);

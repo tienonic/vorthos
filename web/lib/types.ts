@@ -21,6 +21,7 @@ export type Art = {
   pal: string[];
 };
 export type Query = {
+  search?: string;
   subject?: number;
   mood?: number;
   type?: number;
@@ -35,6 +36,7 @@ export type Query = {
   limit?: number;
 };
 export type Filters = {
+  search?: string;
   subject?: string;
   mood?: string;
   type?: string;
@@ -53,6 +55,7 @@ export const imageURL = (art: Art, i: number) =>
 export const number = (n: number) => n.toLocaleString("en-US");
 export function toQuery(f: Filters, m: Meta): Query {
   return {
+    search: f.search,
     subject: m.subjects.findIndex((x) => x.key === f.subject),
     mood: m.moods.findIndex((x) => x.key === f.mood),
     type: m.types.indexOf(f.type || ""),
