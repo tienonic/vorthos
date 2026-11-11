@@ -75,10 +75,7 @@ export function ArtTile({
       <ArtImage art={art} index={index} priority={priority} />
       <div className="tile-caption">
         <h3>{art.name[index]}</h3>
-        <p className="tile-artist">{a[0]}</p>
-        <p className="tile-set">
-          {s[0].toUpperCase()} <span>·</span> {s[2]}
-        </p>
+        <p className="tile-set">{s[2]}</p>
       </div>
     </a>
   );
@@ -138,19 +135,12 @@ export function VirtualGrid({
       pendingFocus.current = null;
     }
   }, [view, ids]);
-  const columns =
-      view.viewport < 640
-        ? 2
-        : view.viewport < 768
-          ? 3
-          : view.viewport < 1024
-            ? 4
-            : view.viewport < 1280
-              ? 5
-              : 6,
-    gap = view.viewport < 640 ? 10 : 12;
+  const narrow = view.viewport < 640;
+  const columns = narrow ? 2 : Math.max(3, Math.round(view.width / 300)),
+    gap = narrow ? 16 : 44,
+    rowGap = narrow ? 20 : 48;
   const tileWidth = (view.width - gap * (columns - 1)) / columns,
-    rowHeight = (tileWidth - 2) * 0.75 + 69.5 + gap,
+    rowHeight = tileWidth * 0.75 + 46 + rowGap,
     rows = Math.ceil(ids.length / columns);
   const start = Math.max(
       0,

@@ -7,7 +7,6 @@ import {
   type CSSProperties,
 } from "react";
 import { useData, useArtQuery } from "./data-provider";
-import { FiltersBar } from "./filters";
 import { Count, VirtualGrid } from "./grid";
 import { useURL } from "@/lib/url";
 import { Filters, number, toQuery } from "@/lib/types";
@@ -48,12 +47,7 @@ export function Collection() {
         id="collection"
         aria-label="Collection"
       >
-        <div className="filter-rail">
-          <div className="page-width">
-            <FiltersBar filters={filters} />
-          </div>
-        </div>
-        <div className="page-width">
+        <div className="wall-width">
           <Count count={result.total} ms={result.ms} />
           <VirtualGrid ids={result.ids} />
         </div>
@@ -207,12 +201,7 @@ export function CollectionHero() {
 export function CollectionLoading() {
   return (
     <section className="collection-section" id="collection">
-      <div className="filter-rail">
-        <div className="page-width">
-          <FiltersBar filters={{}} />
-        </div>
-      </div>
-      <div className="page-width">
+      <div className="wall-width">
         <p className="count-line">Loading artworks…</p>
         <div className="loading-grid" aria-hidden="true">
           {Array.from({ length: 12 }, (_, i) => (

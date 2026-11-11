@@ -2,7 +2,7 @@
 
 A gallery of every unique piece of Magic: The Gathering card art. Browse by colour, mood, subject, year and artist. The art is the point; card stats and rules text are left out.
 
-Live site: https://tienonic.github.io/vorthos/
+Live site: https://vorthos.vercel.app
 
 ## What is here
 

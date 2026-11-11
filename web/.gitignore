@@ -6,3 +6,4 @@ screenshots/reference-*
 
 .tmp/
 worker.log
+.vercel

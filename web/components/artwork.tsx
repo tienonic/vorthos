@@ -93,34 +93,72 @@ export function ArtworkOverlay() {
               <ArtImage art={art} index={index} priority />
             </div>
             <div className="art-details">
-              <p className="detail-kind">{meta.types[art.type[index]]}</p>
-              <div className="detail-heading">
+              <h2 id="artwork-title">{art.name[index]}</h2>
+              <p className="detail-set">{s[2]}</p>
+              <dl className="stats">
                 <div>
-                  <h2 id="artwork-title">{art.name[index]}</h2>
-                  <Link
-                    href={filterLink({ artist: a[1] })}
-                    onClick={(e) => goFilter(e, { artist: a[1] })}
-                    className="artist-link"
-                  >
-                    {a[0]} ↗
-                  </Link>
+                  <dt>Artist</dt>
+                  <dd>
+                    <Link
+                      href={filterLink({ artist: a[1] })}
+                      onClick={(e) => goFilter(e, { artist: a[1] })}
+                    >
+                      {a[0]}
+                    </Link>
+                  </dd>
                 </div>
-              </div>
-              <p className="detail-set">
-                {s[1]} · {s[2]}
-              </p>
-              <a
-                className="detail-source"
-                href={`https://scryfall.com/card/${art.id[index]}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View on Scryfall ↗
-              </a>
-              <div className="detail-bottom">
                 <div>
-                  <p className="detail-label">Palette</p>
-                  <div className="swatches">
+                  <dt>Set</dt>
+                  <dd>
+                    {s[1]} ({s[0].toUpperCase()})
+                  </dd>
+                </div>
+                <div>
+                  <dt>Year</dt>
+                  <dd>{s[2]}</dd>
+                </div>
+                <div>
+                  <dt>Card type</dt>
+                  <dd>{meta.types[art.type[index]]}</dd>
+                </div>
+                <div>
+                  <dt>Subject</dt>
+                  <dd>
+                    <Link
+                      href={filterLink({
+                        subject: meta.subjects[art.subject[index]].key,
+                      })}
+                      onClick={(e) =>
+                        goFilter(e, {
+                          subject: meta.subjects[art.subject[index]].key,
+                        })
+                      }
+                    >
+                      {meta.subjects[art.subject[index]].label}
+                    </Link>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Mood</dt>
+                  <dd>
+                    {meta.moods.some((_, j) => art.moods[index] & (1 << j))
+                      ? meta.moods.map((m, j) =>
+                          art.moods[index] & (1 << j) ? (
+                            <Link
+                              key={m.key}
+                              href={filterLink({ mood: m.key })}
+                              onClick={(e) => goFilter(e, { mood: m.key })}
+                            >
+                              {m.label}
+                            </Link>
+                          ) : null,
+                        )
+                      : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Palette</dt>
+                  <dd className="swatches">
                     {Array.from({ length: 3 }, (_, j) => {
                       const hex = art.pal[index * 3 + j];
                       return (
@@ -136,37 +174,24 @@ export function ArtworkOverlay() {
                         />
                       );
                     })}
-                  </div>
+                  </dd>
                 </div>
                 <div>
-                  <p className="detail-label">Mood & subject</p>
-                  <div className="detail-tags">
-                    {meta.moods.map((m, j) =>
-                      art.moods[index] & (1 << j) ? (
-                        <Link
-                          key={m.key}
-                          href={filterLink({ mood: m.key })}
-                          onClick={(e) => goFilter(e, { mood: m.key })}
-                        >
-                          {m.label}
-                        </Link>
-                      ) : null,
-                    )}
-                    <Link
-                      href={filterLink({
-                        subject: meta.subjects[art.subject[index]].key,
-                      })}
-                      onClick={(e) =>
-                        goFilter(e, {
-                          subject: meta.subjects[art.subject[index]].key,
-                        })
-                      }
-                    >
-                      {meta.subjects[art.subject[index]].label}
-                    </Link>
-                  </div>
+                  <dt>Dominant colour</dt>
+                  <dd>
+                    {art.hsl[index * 3]}° hue · {art.hsl[index * 3 + 1]}%
+                    saturation · {art.hsl[index * 3 + 2]}% light
+                  </dd>
                 </div>
-              </div>
+              </dl>
+              <a
+                className="detail-source"
+                href={`https://scryfall.com/card/${art.id[index]}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on Scryfall ↗
+              </a>
             </div>
           </>
         ) : (

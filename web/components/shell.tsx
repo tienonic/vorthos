@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useData } from "./data-provider";
 import { ArtworkOverlay } from "./artwork";
+import { NavFilters } from "./filters";
 export function Mark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 28 28" aria-hidden="true">
@@ -28,9 +29,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <header className="topbar">
         <div className="top-inner">
           <Link href="/" className="wordmark">
-            <Mark />
+            <Mark size={20} />
             <span className="wordmark-name">vorthos</span>
           </Link>
+          {(path === "/" || path === "") && (
+            <Suspense fallback={null}>
+              <NavFilters />
+            </Suspense>
+          )}
           <nav aria-label="Main navigation">
             {items.map(([href, label]) => (
               <Link

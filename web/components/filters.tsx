@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Filters } from "@/lib/types";
 import { useData } from "./data-provider";
-import { updateURL } from "@/lib/url";
+import { updateURL, useURL } from "@/lib/url";
 const filterKeys = [
   "search",
   "subject",
@@ -195,15 +195,6 @@ export function FiltersBar({ filters }: { filters: Filters }) {
   if (!meta)
     return (
       <div className="filters loading-filters" aria-label="Loading filters">
-        <label className="collection-search">
-          <SearchIcon />
-          <input
-            aria-label="Search artworks"
-            placeholder="Search artworks…"
-            disabled
-          />
-        </label>
-        <span className="filter-divider" aria-hidden="true" />
         <div className="filter-controls">
           {["Subject", "Mood", "Colour", "Card type", "Year", "Artist"].map(
             (x) => (
@@ -241,26 +232,6 @@ export function FiltersBar({ filters }: { filters: Filters }) {
   };
   return (
     <div className="filters" ref={root}>
-      <label className="collection-search">
-        <SearchIcon />
-        <input
-          aria-label="Search artworks"
-          placeholder="Search artworks…"
-          value={filters.search || ""}
-          onChange={(event) =>
-            updateURL({ search: event.target.value || undefined })
-          }
-        />
-        {filters.search && (
-          <button
-            aria-label="Clear artwork search"
-            onClick={() => updateURL({ search: undefined })}
-          >
-            ×
-          </button>
-        )}
-      </label>
-      <span className="filter-divider" aria-hidden="true" />
       <div className="filter-controls">
         {Object.entries(labels).map(([key, label]) => {
           const value = filters[key as keyof Filters],
@@ -445,5 +416,24 @@ function SearchIcon() {
       <circle cx="10.5" cy="10.5" r="7" />
       <path d="m16 16 5 5" />
     </svg>
+  );
+}
+
+export function NavFilters() {
+  const params = useURL();
+  const [shown, setShown] = useState(false);
+  const filters = Object.fromEntries(
+    filterKeys.flatMap((k) => (params.has(k) ? [[k, params.get(k)!]] : [])),
+  ) as Filters;
+  useEffect(() => {
+    const check = () => setShown(window.scrollY > window.innerHeight * 0.5);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, []);
+  return (
+    <div className="nav-filters" data-shown={shown}>
+      <FiltersBar filters={filters} />
+    </div>
   );
 }
